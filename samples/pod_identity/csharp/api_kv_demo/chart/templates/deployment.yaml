@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Values.image.name }}"
+  labels:
+    deploy: {{ .Values.image.label }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.image.label }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.image.label }}
+        aadpodidbinding: {{ .Values.namespace }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}{{ .Values.version }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          env:
+            - name: KEYVAULT_URI
+              value: {{ .Values.keyvault}}
+
