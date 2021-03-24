@@ -52,24 +52,24 @@ variable "aks_subnet_address_prefix" {
 variable "container_registry_name" {
 
   description = "Container Registry name"
-  default     = "msalemaksdemoacr"
+  default     = "ENTER NAME HERE"
 }
 
 variable "key_vault_name" {
   description = "Existing key vault name"
-  default     = "aksidentitydemo"
+  default     = "ENTER NAME HERE"
 }
 
 
 variable "key_vault_rg" {
   description = "Existing key vault rg"
-  default     = "demo-apps"
+  default     = "demo-apps" # ENTER NAME HERE
 }
 
 
 variable "aks_name" {
   description = "AKS cluster name"
-  default     = "demo-cluster"
+  default     = "demo-cluster" # ENTER NAME HERE
 }
 variable "aks_dns_prefix" {
   description = "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
@@ -124,7 +124,7 @@ variable "vm_user_name" {
 
 variable "public_ssh_key_path" {
   description = "Public key path for SSH."
-  default     = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDU3KNjd5IDjqiDNPkHllxX8K0auEkBrkSvx4HkqZT12By5cM6uwfpVGx0KKTQMtYQ4k2UAPoHhXpsDxeptTGg/rpsW57DvF7qAtack0opnnVR5lQfIy1VlCQK5pyKi52hKy5J3WgCMA91CUoOUmTdDpJ2yuXlGexUBhMSSUIWI7UzZabKsjAgrio+gVwbE3/Vco99Toyf5JYeIlebXsJa4ppDvmYio4WY6N7fAZSj4WTjreT8wzbJUAesaGPXJqgaRJq0EmxJZBfJEn1Gw5h7XfhLpnr4vGRAgWdpMxx/uZ2HpNgx7kDoZcdIM4+UyEsrsiUW6tRvgtziWrKL1fElP"
+  default     = "Enter PK HERE"
 }
 
 variable "tags" {
@@ -138,7 +138,7 @@ variable "tags" {
 variable "azure_ad_admin_groups" {
   description = "This list of groups Priniciple Ids who will be bounded to cluster-Admin role to get full Admin rights for this cluster. This used only if `azure_ad` is enabled"
   type        = list(string)
-  default     = ["b85402be-e19f-47e6-8ae0-8c3a905e712d"]
+  default     = [Enter GUID HERE]
   
 }
 
