@@ -1,0 +1,22 @@
+---
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: {{ .Values.managedIdentity.selectorName }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  type: 0
+  resourceID: {{ .Values.managedIdentity.resourceId }}
+  clientID: {{ .Values.managedIdentity.clientId }}
+
+---
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentityBinding
+metadata:
+  name: {{ .Values.managedIdentity.selectorName }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  azureIdentity: {{ .Values.managedIdentity.selectorName }}
+  selector: {{ .Values.managedIdentity.selectorName }}

@@ -1,0 +1,30 @@
+# Default values for chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+replicaCount: 2
+
+image:
+  name: csharpdemo
+  label: csharpdemo
+  repository: msalemaksdemoacr.azurecr.io/csharpdemo
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  name: csharpdemo-svc
+  port: 80
+
+namespace: demo
+keyvault: local
+
+
+ingress:
+  enabled: true
+  path: csharpkv
+  host: localhost
+  tls: []
+
+nodeSelector: {}
+affinity: {}

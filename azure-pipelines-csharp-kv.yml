@@ -1,0 +1,163 @@
+pool:
+  vmImage: 'ubuntu-18.04'
+
+variables:
+  - name: releaseName
+    value: 'csharpdemo'
+
+  - name: workingDirectory
+    value: '$(System.DefaultWorkingDirectory)/samples/pod_identity/csharp/api_kv_demo'
+
+  - name: buildDirectory
+    value: '$(System.DefaultWorkingDirectory)/samples/pod_identity/csharp/api_kv_demo/out'
+
+  - name: publishedfile
+    value: api_kv_demo.zip
+
+  - name: dockerFilePath
+    value: '../$(releaseName)/Dockerfile'
+
+  - name: chartFilePath
+    value: '$(System.DefaultWorkingDirectory)/samples/pod_identity/csharp/api_kv_demo/chart'
+
+  - name: acrServiceConnection
+    value: 'dockersvc'
+
+  - name: acrRepo
+    value: 'csharpdemo'
+
+  - name: helmArtifactName
+    value: 'csharpdemochart'
+
+  - name: kubernetesServiceConnection
+    value: 'aks-sa-demo'
+
+  - name: namespace
+    value: 'demo'
+
+  - name: buildConfiguration
+    value: 'Release'
+
+  - name: host
+    value: 'c2f18e30623f44dd849b.eastus2.aksapp.io'
+
+  - name: keyValue
+    value: https://aksidentitydemo.vault.azure.net/
+
+stages:
+- stage: dotnetbuild
+  displayName: 'DoNet Build & Publish'
+  dependsOn: []
+  jobs:
+  - job: build
+    steps:
+      - task: DotNetCoreCLI@2
+        inputs:
+          command: 'publish'
+          publishWebProjects: false
+          projects: '$(workingDirectory)'
+          arguments: '--configuration $(BuildConfiguration) --output $(buildDirectory)'
+          zipAfterPublish: false
+          modifyOutputPath: false
+
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: '$(workingDirectory)'
+          Contents: 'Dockerfile'
+          TargetFolder: '$(buildDirectory)'
+
+      - task: PublishPipelineArtifact@1
+        condition: succeeded()
+        inputs:
+          targetPath: $(buildDirectory)
+          artifact: $(releaseName)
+          publishLocation: 'pipeline'
+         
+      - task: PublishPipelineArtifact@1
+        condition: succeeded()
+        inputs:
+          targetPath: $(chartFilePath)
+          artifact: $(helmArtifactName)
+          publishLocation: 'pipeline'
+
+- stage: dockerbuild
+  displayName: 'Docker Build'
+  condition:  succeeded()
+  jobs:
+  - deployment: dockerbuild
+    environment: dockerDemo
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - download: current
+              artifact: $(releaseName)
+
+            - task: Docker@2
+              displayName: Login to ACR
+              inputs:
+                command: login
+                containerRegistry: $(acrServiceConnection)
+
+            - task: Docker@2
+              displayName: Build  image
+              inputs:
+                repository: $(acrRepo)
+                command: build
+                Dockerfile: $(dockerFilePath)
+                containerRegistry: $(acrServiceConnection)
+                tags: |
+                  $(Build.BuildId)
+                  $(Build.SourceVersion)
+
+            - task: Docker@2
+              displayName: Push image
+              inputs:
+                repository:  $(acrRepo)
+                command: push
+                Dockerfile: $(dockerFilePath)
+                containerRegistry:  $(acrServiceConnection)
+                tags: $(Build.BuildId)
+
+            - task: Docker@2
+              displayName: Logout from ACR
+              condition: always()
+              inputs:
+                command: logout
+                containerRegistry:  $(acrServiceConnection)    
+
+- stage: deploycsharpApp
+  dependsOn: 'dockerbuild'
+  displayName: 'Deploy CSharp Demo'
+  condition: and(succeeded(),eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  jobs:
+  - deployment: helmdeploy
+    environment: charpdemo
+    strategy:
+      runOnce:
+        deploy:        
+          steps:
+            - download: current
+              artifact: $(helmArtifactName)
+
+            - task: HelmInstaller@0
+              displayName: 'Install Helm 3.2.0'
+              inputs:
+                helmVersion: 3.2.0
+                checkLatestHelmVersion: false      
+
+            - task: HelmDeploy@0
+              displayName: Deploy to Demo
+              inputs:
+                connectionType: 'Kubernetes Service Connection'
+                kubernetesServiceConnection: $(kubernetesServiceConnection)
+                namespace: $(namespace) 
+                command: 'upgrade'
+                chartType: 'FilePath'
+                chartPath: '$(Pipeline.Workspace)/$(helmArtifactName)'
+                releaseName: $(releaseName)
+                install: true
+                waitForExecution: false       
+                arguments: '--set image.tag=$(Build.BuildId) --set ingress.host=$(host)  --set keyvault=$(keyValue) --set namespace=$(namespace) '
+            
+

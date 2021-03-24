@@ -1,0 +1,13 @@
+
+fullname: ""
+nameOverride: ""
+key_vault_id : ""
+tenant_id : ""
+environment : ""
+secret1: ""
+secret2: ""
+
+managedIdentity:
+  selectorName: azure-key-vault
+  resourceId:  /subscriptions/xxx/resourcegroups/yyy/providers/Microsoft.ManagedIdentity/userAssignedIdentities/zzz
+  clientId: zzz

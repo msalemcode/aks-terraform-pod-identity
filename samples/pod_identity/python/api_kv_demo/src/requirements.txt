@@ -1,0 +1,7 @@
+azure==4.0.0
+azure-common==1.1.20
+azure-keyvault==1.1.0
+azure-mgmt==4.0.0
+azure-mgmt-authorization==0.50.0
+azure-mgmt-subscription==0.2.0
+Flask==1.0
